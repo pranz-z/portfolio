@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FRNTX Portfolio</title>
-    <meta name="description" content="An RPG style portfolio launcher." />
+    <title>FRNTX Wilds Launcher</title>
+    <meta name="description" content="A Monster Hunter Wilds-inspired cinematic portfolio launcher." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Fira+Code:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -12,12 +12,16 @@
   </head>
   <body>
     <div class="app-shell">
+      <canvas class="ember-canvas" id="emberCanvas" aria-hidden="true"></canvas>
+
       <section class="splash-screen" id="splashScreen" aria-label="Title splash screen">
         <div class="splash-inner">
           <h1 class="splash-logo">F R N T X</h1>
           <p class="splash-prompt">Press Any Key to Start</p>
         </div>
       </section>
+
+      <div class="boot-sweep" id="bootSweep" aria-hidden="true"></div>
 
       <div class="main-screen" id="mainScreen" aria-hidden="true">
         <aside class="sidebar" aria-label="Primary navigation">
@@ -28,230 +32,243 @@
             </div>
 
             <nav class="menu-list" aria-label="Main navigation">
-              <button class="menu-item" data-modal="modal-start">CHARACTER PROFILE</button>
-              <button class="menu-item" data-modal="modal-quests">QUEST LOG</button>
-              <button class="menu-item" data-modal="modal-guild">WORK WITH ME</button>
+              <button
+                class="menu-item"
+                data-tab="profile"
+                data-preview-tag="Hunter's Notes // 01"
+                data-preview-title="Every stat, skill, and system behind the build."
+              >CHARACTER PROFILE</button>
+              <button
+                class="menu-item"
+                data-tab="quests"
+                data-preview-tag="Hunter's Notes // 02"
+                data-preview-title="The campaigns in progress, ranked by priority."
+              >ACTIVE QUESTS</button>
+              <button
+                class="menu-item"
+                data-tab="guild"
+                data-preview-tag="Hunter's Notes // 03"
+                data-preview-title="Open an alliance. Send word to the Guild."
+              >WORK WITH ME</button>
             </nav>
           </div>
         </aside>
 
         <section class="hero-panel" aria-hidden="true">
-          <div class="hero-copy">
-            <p class="hero-tag">Welcome to the FRNTX.</p>
-            <h2 class="hero-title">A cinematic game portfolio experience.</h2>
+          <div class="hero-copy" id="heroCopy">
+            <p class="hero-tag" id="heroTag">Welcome to the FRNTX.</p>
+            <h2 class="hero-title" id="heroTitle">A cinematic game portfolio experience.</h2>
           </div>
         </section>
 
         <footer class="taskbar" aria-label="Taskbar">
           <div class="task-pill"><span class="task-key">[Version]</span><span>2026.1.0</span></div>
           <div class="task-pill"><span class="task-key">Alias</span><span>Fura / Poora</span></div>
+          <div class="task-pill task-pill-hint"><span class="task-key">Nav</span><span>Click or Arrow Keys to browse tabs</span></div>
         </footer>
       </div>
     </div>
 
-    <div class="modal-backdrop" id="backdrop" hidden></div>
+    <div class="hunter-menu" id="hunterMenu" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Hunter's Notes">
+      <div class="hunter-menu-backdrop" data-close></div>
 
-    <section class="modal" id="modal-start" role="dialog" aria-modal="true" aria-labelledby="modal-start-title" aria-hidden="true">
-      <div class="modal-panel modal-panel-rpg">
-        <div class="modal-header">
-          <h2 id="modal-start-title">CHARACTER PROFILE</h2>
+      <div class="hunter-menu-panel">
+        <div class="hunter-menu-header">
+          <div class="hunter-menu-tabs" role="tablist" aria-label="Hunter's Notes sections">
+            <button class="hunter-tab-arrow" data-prev-tab type="button" aria-label="Previous section">&#9668;</button>
+            <div class="hunter-tab-group">
+              <button class="hunter-tab" data-tab="profile" role="tab" id="tab-btn-profile" aria-selected="false" aria-controls="panel-profile" type="button">Character Profile</button>
+              <button class="hunter-tab" data-tab="quests" role="tab" id="tab-btn-quests" aria-selected="false" aria-controls="panel-quests" type="button">Active Quests</button>
+              <button class="hunter-tab" data-tab="guild" role="tab" id="tab-btn-guild" aria-selected="false" aria-controls="panel-guild" type="button">Work With Me</button>
+            </div>
+            <button class="hunter-tab-arrow" data-next-tab type="button" aria-label="Next section">&#9658;</button>
+          </div>
           <button class="modal-close" data-close type="button">CLOSE [X]</button>
         </div>
-        <div class="modal-start-grid">
-          <aside class="rpg-sidebar">
-            <div class="rpg-card rpg-basic-card">
-              <div class="rpg-card-title">Basic</div>
-              <div class="rpg-basic-top">
-                <div class="rpg-avatar">
-                  <img class="profile-photo" src="profile-photo.jpg" alt="Character portrait" />
-                </div>
-                <div class="rpg-profile-fields">
-                  <div class="rpg-field-row">
-                    <span>Name</span>
-                    <div class="rpg-field">FRANZ MICHAEL L. CAYANAN</div>
+
+        <div class="hunter-menu-body">
+          <section class="hunter-panel" data-panel="profile" id="panel-profile" role="tabpanel" aria-labelledby="tab-btn-profile">
+            <div class="modal-start-grid">
+              <aside class="rpg-sidebar">
+                <div class="rpg-card rpg-basic-card">
+                  <div class="rpg-card-title">Basic</div>
+                  <div class="rpg-basic-top">
+                    <div class="rpg-avatar">
+                      <img class="profile-photo" src="profile-photo.jpg" alt="Character portrait" />
+                    </div>
+                    <div class="rpg-profile-fields">
+                      <div class="rpg-field-row">
+                        <span>Name</span>
+                        <div class="rpg-field">FRANZ MICHAEL L. CAYANAN</div>
+                      </div>
+                      <div class="rpg-field-row">
+                        <span>Archetype</span>
+                        <div class="rpg-field">AI Lead & System Architect</div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="rpg-field-row">
-                    <span>Archetype</span>
-                    <div class="rpg-field">AI Lead & System Architect</div>
+                  <div class="rpg-attributes">
+                    <div class="attr-row">
+                      <div>
+                        <span>Strength</span>
+                        <strong>9</strong>
+                      </div>
+                      <div class="attr-stat">+ -</div>
+                      <p>Backend Stamina</p>
+                    </div>
+                    <div class="attr-row">
+                      <div>
+                        <span>Dexterity</span>
+                        <strong>9</strong>
+                      </div>
+                      <div class="attr-stat">+ -</div>
+                      <p>Mobile Agility</p>
+                    </div>
+                    <div class="attr-row">
+                      <div>
+                        <span>Intellect</span>
+                        <strong>9</strong>
+                      </div>
+                      <div class="attr-stat">+ -</div>
+                      <p>AI & Research</p>
+                    </div>
+                    <div class="attr-row">
+                      <div>
+                        <span>Intuition</span>
+                        <strong>9</strong>
+                      </div>
+                      <div class="attr-stat">+ -</div>
+                      <p>System Strategy</p>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+
+              <div class="rpg-center-panel">
+                <div class="rpg-card skills-card">
+                  <div class="rpg-card-title">Skills</div>
+                  <div class="skills-scroll">
+                    <div class="skill-group">
+                      <span class="skill-group-title">Cross-Platform / Frontend</span>
+                      <div class="skill-item"><strong>Flutter / Dart</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>HTML5 / CSS3 / JS</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>UNITY</strong><span>100%</span></div>
+                    </div>
+                    <div class="skill-group">
+                      <span class="skill-group-title">AI & On-Device Inference</span>
+                      <div class="skill-item"><strong>YOLOv11 / Unity Sentis</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>Local LLMs (Ollama) / n8n</strong><span>100%</span></div>
+                    </div>
+                    <div class="skill-group">
+                      <span class="skill-group-title">Backend & Database</span>
+                      <div class="skill-item"><strong>PHP / Laravel</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>Node.js</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>Firebase / Firestore</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>Supabase</strong><span>100%</span></div>
+                      <div class="skill-item"><strong>PostgreSQL / MySQL / NoSQL</strong><span>100%</span></div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="rpg-attributes">
-                <div class="attr-row">
-                  <div>
-                    <span>Strength</span>
-                    <strong>9</strong>
+
+              <aside class="rpg-sidebar rpg-right-sidebar">
+                <div class="rpg-card rpg-stats-card">
+                  <div class="rpg-card-title">Stats</div>
+                  <div class="stats-grid">
+                    <div class="stats-item"><span>Level</span><strong>2026</strong></div>
+                    <div class="stats-item"><span>Experience</span><strong>100%</strong></div>
+                    <div class="stats-item"><span>Affiliation</span><strong>BMWare Technical Intern</strong></div>
+                    <div class="stats-item"><span>Status Effect</span><strong>Great Place to Work Buff Active</strong></div>
                   </div>
-                  <div class="attr-stat">+ -</div>
-                  <p>Backend Stamina</p>
                 </div>
-                <div class="attr-row">
-                  <div>
-                    <span>Dexterity</span>
-                    <strong>9</strong>
+              </aside>
+            </div>
+          </section>
+
+          <section class="hunter-panel" data-panel="quests" id="panel-quests" role="tabpanel" aria-labelledby="tab-btn-quests">
+            <div class="book-pages">
+              <article class="book-page book-page-left">
+                <div class="book-page-header">
+                  <span class="book-page-label">Quest Log</span>
+                </div>
+                <div class="quest-table">
+                  <div class="quest-table-head">
+                    <span>Quest Title</span>
+                    <span>Level</span>
+                    <span>Force Display</span>
                   </div>
-                  <div class="attr-stat">+ -</div>
-                  <p>Mobile Agility</p>
-                </div>
-                <div class="attr-row">
-                  <div>
-                    <span>Intellect</span>
-                    <strong>9</strong>
+                  <div class="quest-table-body">
+                    <button class="quest-row active" type="button" data-quest="ultimate">
+                      <span class="quest-cell quest-title" data-label="Quest">The Ultimate Work Experience Hunt</span>
+                      <span class="quest-cell quest-level" data-label="Level">9999</span>
+                      <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" checked disabled aria-label="Force Display checked"></span>
+                    </button>
+                    <button class="quest-row" type="button" data-quest="raid">
+                      <span class="quest-cell quest-title" data-label="Quest">Raid: The BMWare Trials</span>
+                      <span class="quest-cell quest-level" data-label="Level">99</span>
+                      <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" disabled aria-label="Force Display unchecked"></span>
+                    </button>
+                    <button class="quest-row" type="button" data-quest="thesis">
+                      <span class="quest-cell quest-title" data-label="Quest">Thesis: AI Maintenance Simulator</span>
+                      <span class="quest-cell quest-level" data-label="Level">95</span>
+                      <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" disabled aria-label="Force Display unchecked"></span>
+                    </button>
+                    <button class="quest-row" type="button" data-quest="webxr">
+                      <span class="quest-cell quest-title" data-label="Quest">WebXR Virtual Classroom</span>
+                      <span class="quest-cell quest-level" data-label="Level">75</span>
+                      <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" disabled aria-label="Force Display unchecked"></span>
+                    </button>
                   </div>
-                  <div class="attr-stat">+ -</div>
-                  <p>AI & Research</p>
                 </div>
-                <div class="attr-row">
-                  <div>
-                    <span>Intuition</span>
-                    <strong>9</strong>
+                <label class="show-all-toggle">
+                  <input class="show-all-checkbox" type="checkbox" aria-label="Show all quests">
+                  <span>Show All</span>
+                </label>
+              </article>
+
+              <article class="book-page book-page-right">
+                <div class="quest-detail-header">
+                  <h3 class="quest-detail-title">THE ULTIMATE WORK EXPERIENCE HUNT</h3>
+                  <p class="quest-detail-level">Requirement Level 100 (Immediate Availability)</p>
+                </div>
+                <p class="quest-detail-copy">A high-tier campaign to secure a long-term alliance with an industry-leading company. The ideal deployment must offer a competitive gold bounty, an exceptional collaborative environment, and full WFH Remote parameters to maximize technical efficiency.</p>
+                <ul class="quest-objectives">
+                  <li>♦ Objective: Secure a full-time Full-Stack, Mobile, or AI Engineering position</li>
+                  <li>♦ Objective: Guarantee a Work From Home (WFH) / Fully Remote ecosystem</li>
+                  <li>♦ Objective: Establish synergy with a top-tier team culture (matching Great Place to Work ethos)</li>
+                  <li>♦ Objective: Deploy optimized architectures for a high-value salary bounty</li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section class="hunter-panel" data-panel="guild" id="panel-guild" role="tabpanel" aria-labelledby="tab-btn-guild">
+            <div class="contact-modal">
+              <div class="contact-info">
+                <div class="contact-card">
+                  <h3>Invite Me</h3>
+                  <p>Reach out for AI systems, frontend experiences, or portfolio collaborations.</p>
+                  <div class="contact-list">
+                    <div><span>Email</span><strong>franzcayanan0407@gmail.com</strong></div>
+                    <div><span>LinkedIn</span><strong>linkedin.com/in/franz-michael-cayanan-5975a5403/</strong></div>
+                    <div><span>Contact No.</span><strong>09919753445</strong></div>
+                    <div><span>Discord</span><strong>fura4539</strong></div>
                   </div>
-                  <div class="attr-stat">+ -</div>
-                  <p>System Strategy</p>
                 </div>
+              </div>
+              <div class="contact-slate">
+                <p>Open to invites, partnerships, and creative software quests.</p>
               </div>
             </div>
-          </aside>
+          </section>
+        </div>
 
-          <div class="rpg-center-panel">
-            <div class="rpg-card skills-card">
-              <div class="rpg-card-title">Skills</div>
-              <div class="skills-scroll">
-                <div class="skill-group">
-                  <span class="skill-group-title">Cross-Platform / Frontend</span>
-                  <div class="skill-item"><strong>Flutter / Dart</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>HTML5 / CSS3 / JS</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>UNITY</strong><span>100%</span></div>
-                </div>
-                <div class="skill-group">
-                  <span class="skill-group-title">AI & On-Device Inference</span>
-                  <div class="skill-item"><strong>YOLOv11 / Unity Sentis</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>Local LLMs (Ollama) / n8n</strong><span>100%</span></div>
-                </div>
-                <div class="skill-group">
-                  <span class="skill-group-title">Backend & Database</span>
-                  <div class="skill-item"><strong>PHP / Laravel</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>Node.js</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>Firebase / Firestore</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>Supabase</strong><span>100%</span></div>
-                  <div class="skill-item"><strong>PostgreSQL / MySQL / NoSQL</strong><span>100%</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <aside class="rpg-sidebar rpg-right-sidebar">
-
-            <div class="rpg-card rpg-stats-card">
-              <div class="rpg-card-title">Stats</div>
-              <div class="stats-grid">
-                <div class="stats-item"><span>Level</span><strong>02-2026 - 04-2026</strong></div>
-                <div class="stats-item"><span>Experience</span><strong>100%</strong></div>
-                <div class="stats-item"><span>Affiliation</span><strong>BMWare Technical Intern</strong></div>
-                <div class="stats-item"><span>Status Effect</span><strong>Great Place to Work Buff Active</strong></div>
-              </div>
-            </div>
-            <!-- <div class="rpg-card perks-card">
-              <div class="rpg-card-title">Perks</div>
-              <div class="perk-item"><span class="perk-dot">●</span><span>Monster Hunter Grinder (+100% Code Grind)</span></div>
-              <div class="perk-item"><span class="perk-dot">●</span><span>TFT Tactician (+50% Logic Design)</span></div>
-              <div class="perk-item"><span class="perk-dot">●</span><span>Basketball Point Guard (+40% System Vision)</span></div>
-              <div class="perk-item"><span class="perk-dot">●</span><span>F1 Enthusiast (Max Velocity Execution)</span></div>
-            </div> -->
-          </aside>
+        <div class="hunter-menu-footer">
+          <span class="footer-hint"><kbd>&#9668;</kbd> <kbd>&#9658;</kbd> Switch Tab</span>
+          <span class="footer-hint"><kbd>Esc</kbd> Close</span>
         </div>
       </div>
-    </section>
-
-    <section class="modal" id="modal-quests" role="dialog" aria-modal="true" aria-labelledby="modal-quests-title" aria-hidden="true">
-      <div class="modal-panel modal-wide modal-book">
-        <div class="modal-header">
-          <h2 id="modal-quests-title">ACTIVE QUESTS</h2>
-          <button class="modal-close" data-close type="button">CLOSE [X]</button>
-        </div>
-        <div class="book-pages">
-          <article class="book-page book-page-left">
-            <div class="book-page-header">
-              <span class="book-page-label">Quest Log</span>
-            </div>
-            <div class="quest-table">
-              <div class="quest-table-head">
-                <span>Quest Title</span>
-                <span>Level</span>
-                <span>Quest Path</span>
-                <span>Force Display</span>
-              </div>
-              <div class="quest-table-body">
-                <button class="quest-row active" type="button" data-quest="ultimate">
-                  <span class="quest-cell quest-title" data-label="Quest">The Ultimate Work Experience Hunt</span>
-                  <span class="quest-cell quest-level" data-label="Level">9999</span>
-                  <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" checked disabled aria-label="Force Display checked"></span>
-                </button>
-                <button class="quest-row" type="button" data-quest="raid">
-                  <span class="quest-cell quest-title" data-label="Quest">Raid: The BMWare Trials</span>
-                  <span class="quest-cell quest-level" data-label="Level">99</span>
-                  <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" disabled aria-label="Force Display unchecked"></span>
-                </button>
-                <button class="quest-row" type="button" data-quest="thesis">
-                  <span class="quest-cell quest-title" data-label="Quest">Thesis: AI Maintenance Simulator</span>
-                  <span class="quest-cell quest-level" data-label="Level">95</span>
-                  <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" disabled aria-label="Force Display unchecked"></span>
-                </button>
-                <button class="quest-row" type="button" data-quest="webxr">
-                  <span class="quest-cell quest-title" data-label="Quest">WebXR Virtual Classroom</span>
-                  <span class="quest-cell quest-level" data-label="Level">75</span>
-                  <span class="quest-cell quest-force" data-label="Force"><input type="checkbox" disabled aria-label="Force Display unchecked"></span>
-                </button>
-              </div>
-            </div>
-            <label class="show-all-toggle">
-              <input class="show-all-checkbox" type="checkbox" aria-label="Show all quests">
-              <span>Show All</span>
-            </label>
-          </article>
-
-          <article class="book-page book-page-right">
-            <div class="quest-detail-header">
-              <h3 class="quest-detail-title">THE ULTIMATE WORK EXPERIENCE HUNT</h3>
-              <p class="quest-detail-level">Requirement Level 100 (Immediate Availability)</p>
-            </div>
-            <p class="quest-detail-copy">A high-tier campaign to secure a long-term alliance with an industry-leading company. The ideal deployment must offer a competitive gold bounty, an exceptional collaborative environment, and full WFH Remote parameters to maximize technical efficiency.</p>
-            <ul class="quest-objectives">
-              <li>♦ Objective: Secure a full-time Full-Stack, Mobile, or AI Engineering position</li>
-              <li>♦ Objective: Guarantee a Work From Home (WFH) / Fully Remote ecosystem</li>
-              <li>♦ Objective: Establish synergy with a top-tier team culture (matching Great Place to Work ethos)</li>
-              <li>♦ Objective: Deploy optimized architectures for a high-value salary bounty</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="modal" id="modal-guild" role="dialog" aria-modal="true" aria-labelledby="modal-guild-title" aria-hidden="true">
-      <div class="modal-panel">
-        <div class="modal-header">
-          <h2 id="modal-guild-title">FORGE GUILD</h2>
-          <button class="modal-close" data-close type="button">CLOSE [X]</button>
-        </div>
-        <div class="modal-content contact-modal">
-          <div class="contact-info">
-            <div class="contact-card">
-              <h3>Invite Me</h3>
-              <p>Reach out for AI systems, frontend experiences, or portfolio collaborations.</p>
-              <div class="contact-list">
-                <div><span>Email</span><strong>franzcayanan0407@gmail.com</strong></div>
-                <div><span>LinkedIn</span><strong>linkedin.com/in/franz-michael-cayanan-5975a5403/</strong></div>
-                <div><span>Contact No.</span><strong>09919753445</strong></div>
-                <div><span>Discord</span><strong>fura4539</strong></div>
-              </div>
-            </div>
-          </div>
-          <div class="contact-slate">
-            <p>Open to invites, partnerships, and creative software quests.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
 
     <script src="script.js"></script>
   </body>

@@ -1,11 +1,27 @@
-﻿const splashScreen = document.getElementById('splashScreen');
+const splashScreen = document.getElementById('splashScreen');
 const mainScreen = document.getElementById('mainScreen');
+const bootSweep = document.getElementById('bootSweep');
 const menuItems = document.querySelectorAll('.menu-item');
-const modals = document.querySelectorAll('.modal');
-const backdrop = document.getElementById('backdrop');
-let activeModal = null;
-let lastFocusedElement = null;
+const heroTag = document.getElementById('heroTag');
+const heroTitle = document.getElementById('heroTitle');
+
+const hunterMenu = document.getElementById('hunterMenu');
+const hunterTabs = Array.from(document.querySelectorAll('.hunter-tab'));
+const hunterPanels = Array.from(document.querySelectorAll('.hunter-panel'));
+const prevTabButton = document.querySelector('[data-prev-tab]');
+const nextTabButton = document.querySelector('[data-next-tab]');
+const tabOrder = hunterTabs.map((tab) => tab.dataset.tab);
+
 let phaseTwo = false;
+let activeTab = tabOrder[0];
+let lastFocusedElement = null;
+
+const defaultHero = {
+  tag: heroTag ? heroTag.textContent : '',
+  title: heroTitle ? heroTitle.textContent : '',
+};
+
+/* ---------- Boot sequence ---------- */
 
 function revealMainMenu() {
   if (phaseTwo) return;
@@ -13,31 +29,123 @@ function revealMainMenu() {
   splashScreen.classList.add('hide');
   mainScreen.classList.add('visible');
   mainScreen.setAttribute('aria-hidden', 'false');
-}
 
-function openModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (!modal) return;
-  lastFocusedElement = document.activeElement;
-  modal.classList.add('visible');
-  modal.setAttribute('aria-hidden', 'false');
-  backdrop.classList.add('visible');
-  backdrop.hidden = false;
-  activeModal = modal;
-  modal.querySelector('.modal-close')?.focus();
-}
-
-function closeModal() {
-  if (!activeModal) return;
-  activeModal.classList.remove('visible');
-  activeModal.setAttribute('aria-hidden', 'true');
-  backdrop.classList.remove('visible');
-  backdrop.hidden = true;
-  activeModal = null;
-  lastFocusedElement?.focus();
+  if (bootSweep) {
+    bootSweep.classList.add('active');
+    window.setTimeout(() => bootSweep.classList.remove('active'), 800);
+  }
 }
 
 splashScreen.addEventListener('click', revealMainMenu);
+
+/* ---------- Hunter's Notes menu (tabs) ---------- */
+
+function setActiveTab(tabName, { focusPanel } = {}) {
+  if (!tabOrder.includes(tabName)) return;
+  activeTab = tabName;
+
+  hunterTabs.forEach((tab) => {
+    const isActive = tab.dataset.tab === tabName;
+    tab.classList.toggle('active', isActive);
+    tab.setAttribute('aria-selected', String(isActive));
+  });
+
+  hunterPanels.forEach((panel) => {
+    panel.classList.toggle('active', panel.dataset.panel === tabName);
+  });
+
+  if (focusPanel) {
+    const panel = hunterPanels.find((p) => p.dataset.panel === tabName);
+    panel?.focus?.();
+  }
+}
+
+function stepTab(direction) {
+  const currentIndex = tabOrder.indexOf(activeTab);
+  const nextIndex = (currentIndex + direction + tabOrder.length) % tabOrder.length;
+  setActiveTab(tabOrder[nextIndex]);
+  hunterTabs[nextIndex]?.focus();
+}
+
+function openMenu(tabName) {
+  lastFocusedElement = document.activeElement;
+  setActiveTab(tabName || activeTab);
+  hunterMenu.classList.add('visible');
+  hunterMenu.setAttribute('aria-hidden', 'false');
+  hunterMenu.querySelector('.modal-close')?.focus();
+}
+
+function closeMenu() {
+  if (!hunterMenu.classList.contains('visible')) return;
+  hunterMenu.classList.remove('visible');
+  hunterMenu.setAttribute('aria-hidden', 'true');
+  lastFocusedElement?.focus();
+}
+
+function isMenuOpen() {
+  return hunterMenu.classList.contains('visible');
+}
+
+menuItems.forEach((button) => {
+  button.addEventListener('click', () => openMenu(button.dataset.tab));
+
+  button.addEventListener('mouseenter', () => {
+    if (heroTag && button.dataset.previewTag) heroTag.textContent = button.dataset.previewTag;
+    if (heroTitle && button.dataset.previewTitle) heroTitle.textContent = button.dataset.previewTitle;
+  });
+
+  button.addEventListener('focus', () => {
+    if (heroTag && button.dataset.previewTag) heroTag.textContent = button.dataset.previewTag;
+    if (heroTitle && button.dataset.previewTitle) heroTitle.textContent = button.dataset.previewTitle;
+  });
+
+  button.addEventListener('mouseleave', () => {
+    if (heroTag) heroTag.textContent = defaultHero.tag;
+    if (heroTitle) heroTitle.textContent = defaultHero.title;
+  });
+
+  button.addEventListener('blur', () => {
+    if (heroTag) heroTag.textContent = defaultHero.tag;
+    if (heroTitle) heroTitle.textContent = defaultHero.title;
+  });
+});
+
+hunterTabs.forEach((tab) => {
+  tab.addEventListener('click', () => setActiveTab(tab.dataset.tab));
+});
+
+prevTabButton?.addEventListener('click', () => stepTab(-1));
+nextTabButton?.addEventListener('click', () => stepTab(1));
+
+document.querySelectorAll('[data-close]').forEach((el) => {
+  el.addEventListener('click', closeMenu);
+});
+
+/* ---------- Keyboard: boot / close / tab cycling / focus trap ---------- */
+
+function getFocusableElements(container) {
+  return Array.from(
+    container.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => el.offsetParent !== null);
+}
+
+function trapFocus(event) {
+  if (!isMenuOpen() || event.key !== 'Tab') return;
+  const focusable = getFocusableElements(hunterMenu.querySelector('.hunter-menu-panel'));
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 
 document.addEventListener('keydown', (event) => {
   if (!phaseTwo) {
@@ -46,28 +154,20 @@ document.addEventListener('keydown', (event) => {
   }
 
   if (event.key === 'Escape') {
-    closeModal();
+    closeMenu();
+    return;
   }
-});
 
-menuItems.forEach((button) => {
-  button.addEventListener('click', () => openModal(button.dataset.modal));
-});
-
-backdrop.addEventListener('click', closeModal);
-
-document.querySelectorAll('[data-close]').forEach((button) => {
-  button.addEventListener('click', closeModal);
-});
-
-const contactForm = document.querySelector('.contact-form');
-if (contactForm) {
-  contactForm.addEventListener('submit', (event) => {
+  if (isMenuOpen() && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
     event.preventDefault();
-    closeModal();
-    window.alert('Guild dispatch sent. Thank you.');
-  });
-}
+    stepTab(event.key === 'ArrowLeft' ? -1 : 1);
+    return;
+  }
+
+  trapFocus(event);
+});
+
+/* ---------- Quest log ---------- */
 
 const quests = {
   ultimate: {
@@ -140,19 +240,103 @@ questRows.forEach((row) => {
   row.addEventListener('click', () => setActiveQuest(row.dataset.quest));
 });
 
-const abandonButton = document.querySelector('.action-abandon');
-if (abandonButton) {
-  abandonButton.addEventListener('click', () => {
-    window.alert('Quest abandoned.');
-  });
-}
-
 const showAllCheckbox = document.querySelector('.show-all-checkbox');
 if (showAllCheckbox) {
   showAllCheckbox.addEventListener('change', () => {
-    const activeQuests = document.querySelectorAll('.quest-row:not(.active)');
-    activeQuests.forEach((row) => {
+    const inactiveQuests = document.querySelectorAll('.quest-row:not(.active)');
+    inactiveQuests.forEach((row) => {
       row.style.display = showAllCheckbox.checked ? 'grid' : 'none';
     });
   });
 }
+
+/* ---------- Ambient ember particles ---------- */
+
+(function initEmbers() {
+  const canvas = document.getElementById('emberCanvas');
+  if (!canvas || !canvas.getContext) return;
+
+  const ctx = canvas.getContext('2d');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let particles = [];
+  let width = 0;
+  let height = 0;
+  let rafId = null;
+
+  function resize() {
+    width = canvas.clientWidth;
+    height = canvas.clientHeight;
+    canvas.width = width * window.devicePixelRatio;
+    canvas.height = height * window.devicePixelRatio;
+    ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+  }
+
+  function makeParticle(randomY) {
+    return {
+      x: Math.random() * width,
+      y: randomY ? Math.random() * height : height + 10,
+      r: 0.6 + Math.random() * 1.8,
+      speed: 0.25 + Math.random() * 0.55,
+      drift: (Math.random() - 0.5) * 0.4,
+      alpha: 0.15 + Math.random() * 0.5,
+      flicker: Math.random() * Math.PI * 2,
+    };
+  }
+
+  function initParticles() {
+    const count = width < 720 ? 18 : 36;
+    particles = Array.from({ length: count }, () => makeParticle(true));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+    particles.forEach((p) => {
+      p.y -= p.speed;
+      p.x += p.drift;
+      p.flicker += 0.03;
+
+      if (p.y < -10) {
+        Object.assign(p, makeParticle(false));
+      }
+
+      const twinkle = 0.6 + Math.sin(p.flicker) * 0.4;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(224, 196, 127, ${(p.alpha * twinkle).toFixed(3)})`;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    rafId = window.requestAnimationFrame(draw);
+  }
+
+  function start() {
+    if (rafId) return;
+    draw();
+  }
+
+  function stop() {
+    if (rafId) window.cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  resize();
+  initParticles();
+
+  if (!prefersReducedMotion) {
+    start();
+  }
+
+  window.addEventListener('resize', () => {
+    resize();
+    initParticles();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (prefersReducedMotion) return;
+    if (document.hidden) {
+      stop();
+    } else {
+      start();
+    }
+  });
+})();
